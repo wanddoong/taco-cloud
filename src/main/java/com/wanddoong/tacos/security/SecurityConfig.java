@@ -5,20 +5,25 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-       auth.inMemoryAuthentication()
-               .withUser("user1")
-               .password("{noop}password1")
-               .authorities("ROLE_USER")
+       auth.ldapAuthentication()
+               .userSearchBase("ou=people")
+               .userSearchFilter("(uid={0})")
+               .groupSearchBase("ou=groups")
+               .groupSearchFilter("member={0}")
+               .contextSource()
+               .root("dc=tacocloud,dc=com")
+               .ldif("classpath:users.ldif")
                .and()
-               .withUser("user2")
-               .password("{noop}password2")
-               .authorities("ROLE_USER");
+               .passwordCompare()
+               .passwordEncoder(new BCryptPasswordEncoder())
+               .passwordAttribute("userPasscode");
     }
 
     @Override
