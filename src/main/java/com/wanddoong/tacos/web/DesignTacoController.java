@@ -3,8 +3,10 @@ package com.wanddoong.tacos.web;
 import com.wanddoong.tacos.Ingredient;
 import com.wanddoong.tacos.Order;
 import com.wanddoong.tacos.Taco;
+import com.wanddoong.tacos.User;
 import com.wanddoong.tacos.data.IngredientRepository;
 import com.wanddoong.tacos.data.TacoRepository;
+import com.wanddoong.tacos.data.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -13,6 +15,7 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -26,15 +29,17 @@ public class DesignTacoController {
 
     private final IngredientRepository ingredientRepository;
     private final TacoRepository tacoRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public DesignTacoController(IngredientRepository ingredientRepository, TacoRepository tacoRepository) {
+    public DesignTacoController(IngredientRepository ingredientRepository, TacoRepository tacoRepository, UserRepository userRepository) {
         this.ingredientRepository = ingredientRepository;
         this.tacoRepository = tacoRepository;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
-    public String showDesignForm(Model model) {
+    public String showDesignForm(Model model, Principal principal) {
         List<Ingredient> ingredients = new ArrayList<>();
         ingredientRepository.findAll().forEach(it -> ingredients.add(it));
 
@@ -43,7 +48,9 @@ public class DesignTacoController {
             model.addAttribute(type.toString().toLowerCase(), filterByType(ingredients, type));
         }
 
-        model.addAttribute("taco", new Taco());
+        String username = principal.getName();
+        User user = userRepository.findByUsername(username);
+        model.addAttribute("user", user);
 
         return "design";
 
